@@ -1,0 +1,64 @@
+:root {
+  --fondo: #f6f3ee;
+  --tinta: #1f1b16;
+  --suave: #6b635a;
+  --borde: #e2dbd0;
+  --acento: #c2410c;
+  --acento-2: #9a3412;
+  --tarjeta: #ffffff;
+  --ok: #166534;
+  --error: #b91c1c;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--tinta);
+  background: var(--fondo);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); }
+button { font: inherit; cursor: pointer; }
+input { font: inherit; }
+
+.logo { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--acento); color: #fff; font-weight: 700; }
+
+.acceso { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 48px; max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+.marca h1 { font-size: 44px; margin: 16px 0 8px; letter-spacing: -0.02em; }
+.marca p { color: var(--suave); font-size: 18px; margin: 0; }
+
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 16px; padding: 24px; display: grid; gap: 14px; }
+.pestanas { display: grid; grid-template-columns: 1fr 1fr; background: var(--fondo); border-radius: 10px; padding: 4px; }
+.pestanas button { border: 0; background: transparent; padding: 8px; border-radius: 8px; color: var(--suave); }
+.pestanas button.activa { background: #fff; color: var(--tinta); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+label { display: grid; gap: 6px; font-size: 14px; color: var(--suave); }
+label input { padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px; color: var(--tinta); }
+.principal { background: var(--acento); color: #fff; border: 0; padding: 11px 16px; border-radius: 10px; font-weight: 600; }
+.principal:hover { background: var(--acento-2); }
+.principal:disabled { opacity: .5; cursor: not-allowed; }
+.aviso { margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.aviso.ok { background: #dcfce7; color: var(--ok); }
+.aviso.error { background: #fee2e2; color: var(--error); }
+
+.barra { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: #fff; border-bottom: 1px solid var(--borde); gap: 12px; flex-wrap: wrap; }
+.marca-chica { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.usuario { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.usuario span { color: var(--suave); }
+.usuario button { border: 1px solid var(--borde); background: #fff; border-radius: 8px; padding: 6px 10px; }
+
+.contenido { max-width: 960px; margin: 0 auto; padding: 28px 16px 48px; }
+.contenido h2 { margin: 0 0 4px; }
+.sub { color: var(--suave); margin: 0 0 20px; }
+.grilla { list-style: none; padding: 0; margin: 0 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.restaurante { width: 100%; text-align: left; background: #fff; border: 1px solid var(--borde); border-radius: 12px; padding: 16px; display: grid; gap: 6px; }
+.restaurante:hover { border-color: var(--acento); }
+.restaurante.sel { border-color: var(--acento); box-shadow: 0 0 0 2px rgba(194,65,12,.2); }
+.restaurante .nombre { font-weight: 600; }
+.restaurante .detalle { font-size: 13px; color: var(--suave); }
+.restaurante .promedio { font-size: 13px; color: var(--acento-2); font-weight: 600; }
+.calificar { margin-bottom: 16px; }
+.calificar h3 { margin: 0; }
+.notas { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.notas button { border: 1px solid var(--borde); background: #fff; border-radius: 8px; padding: 10px 0; }
+.notas button.activa { background: var(--acento); color: #fff; border-color: var(--acento); }
+
+@media (max-width: 720px) {
+  .acceso { grid-template-columns: 1fr; gap: 24px; }
+  .notas { grid-template-columns: repeat(5, 1fr); }
+}

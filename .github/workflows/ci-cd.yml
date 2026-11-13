@@ -1,0 +1,108 @@
+name: CI/CD FoodService
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ---------------------------------------------------------------
+  # 1) Prueba de Backend (Jest + Supertest + SQLite)
+  # ---------------------------------------------------------------
+  backend-tests:
+    name: Pruebas Backend (Jest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias (sin binario de Cypress)
+        run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+
+      - name: Ejecutar prueba de base de datos
+        run: npm run test:backend -- --ci
+
+  # ---------------------------------------------------------------
+  # 2) Prueba de Frontend (Cypress E2E sobre la app compilada)
+  # ---------------------------------------------------------------
+  frontend-tests:
+    name: Pruebas Frontend (Cypress)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias, compilar, levantar la app y ejecutar Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          build: npm run build
+          start: npm start
+          wait-on: 'http://localhost:3000/api/health'
+          wait-on-timeout: 120
+          browser: chrome
+
+      - name: Guardar capturas de Cypress como evidencia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------
+  # 3) Despliegue a Staging (solo si AMBAS pruebas pasan, y solo en main)
+  # ---------------------------------------------------------------
+  deploy-staging:
+    name: Despliegue a Staging (Render)
+    needs: [backend-tests, frontend-tests]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+    steps:
+      - name: Disparar despliegue en Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Falta el secret RENDER_DEPLOY_HOOK_URL"; exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+          echo "Despliegue solicitado para el commit ${GITHUB_SHA}"
+
+      - name: Verificar que staging responde con esta versión (smoke test)
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          for i in $(seq 1 40); do
+            VERSION=$(curl -fsS "$STAGING_URL/api/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' || true)
+            echo "Intento $i: versión en staging = ${VERSION:-sin respuesta}"
+            if [ "$VERSION" = "$GITHUB_SHA" ]; then
+              echo "Staging actualizado correctamente a ${GITHUB_SHA}"
+              curl -fsS "$STAGING_URL/api/restaurantes" | head -c 300; echo
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::Staging no quedó en la versión ${GITHUB_SHA} dentro del tiempo esperado"
+          exit 1

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+data/
+*.db
+*.db-shm
+*.db-wal
+cypress/screenshots/
+cypress/videos/
+.env
+.DS_Store

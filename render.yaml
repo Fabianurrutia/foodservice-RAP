@@ -1,0 +1,20 @@
+# Blueprint de Render para el entorno de Staging.
+# autoDeploy está desactivado: solo despliega GitHub Actions (vía Deploy Hook)
+# cuando las pruebas de backend y frontend terminan con éxito.
+services:
+  - type: web
+    name: foodservice-staging
+    runtime: node
+    plan: free
+    branch: main
+    autoDeploy: false
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: CYPRESS_INSTALL_BINARY
+        value: "0"
+      - key: JWT_SECRET
+        generateValue: true
